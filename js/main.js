@@ -1,6 +1,7 @@
 import { Header } from './components/header.js';
 import { Footer } from './components/footer.js';
 import { HomePage } from './pages/homePage.js';
+import { CartPage } from './pages/cartPage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname.split('/').pop();
@@ -13,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             new Orders().init();
             break;
         case 'cart.html':
-            new Cart().init();
+            new CartPage().init();
             break;
         case 'portfolio.html':
             new Portfolio().init();
