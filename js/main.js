@@ -1,6 +1,7 @@
 import { Header } from './components/header.js';
 import { Footer } from './components/footer.js';
 import { HomePage } from './pages/homePage.js';
+import { ProductPage } from './pages/productPage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname.split('/').pop();
@@ -8,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (currentPage) {
         case 'Home.html':
             new HomePage().init();
+            break;
+        case 'product.html':
+            new ProductPage().init();
             break;
         case 'orders.html':
             new Orders().init();
