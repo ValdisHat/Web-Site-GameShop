@@ -1,5 +1,6 @@
 import { BasePage } from './basePage.js';
 import {products} from '../data/products.js';
+import { CartUtils } from '../components/cartUtils.js';
 
 export class ProductPage extends BasePage {
     constructor() {
@@ -9,6 +10,7 @@ export class ProductPage extends BasePage {
     init() {
         super.init();
         this.renderProduct();
+        this.addCartButtonListener();
         console.log('Главная страница запущена');
     }
 
@@ -56,7 +58,7 @@ export class ProductPage extends BasePage {
                         <li>Цена: ${product.price} руб.</li>
                     </ul>
 
-                    <button class="pp-button" data-id="${product.id}">
+                    <button class="pp-button add-to-cart-button" data-id="${product.id}">
                         Добавить в корзину
                     </button>
                 </div>
@@ -67,5 +69,21 @@ export class ProductPage extends BasePage {
         const params = new URLSearchParams(window.location.search);
         return Number(params.get('id'));
     }
+
+    addCartButtonListener() {
+    const button = document.querySelector('.add-to-cart-button');
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener('click', () => {
+        const productId = Number(button.dataset.id);
+
+        CartUtils.addToCart(productId);
+
+        button.textContent = 'Добавлено';
+    });
+}
 
 }

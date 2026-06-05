@@ -1,4 +1,5 @@
 import { NAVIGATION_LINKS } from '../data/constants.js';
+import { Search } from './search.js';
 export class Header {
     constructor(containerId = "header-container") {
         this.container = document.getElementById(containerId);
@@ -24,9 +25,6 @@ export class Header {
                 <a class="logo" href="./Home.html">
                     <img src="../../img/LogoForSite.png" alt="GameShop Logo">
                 </a>
-                <button class="catalog-button" aria-label="Toggle menu">
-                    <h2 class="catalog-title">Каталог</h2>
-                </button>
                 <div class="search">
                     <input type="text" class="search-input" placeholder="Search...">
                     <ul class="search-suggestions"></ul>
@@ -42,7 +40,11 @@ export class Header {
 
     init() {
         if (this.container) {
-            this.container.innerHTML = this.render();
+            this.container.innerHTML = this.render()
+            
+            const search = new Search();
+            search.init();
+
             console.log('Header загружен');
         }
     }

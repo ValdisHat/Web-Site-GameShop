@@ -6,7 +6,7 @@ export class Footer {
     render() {
         return `
             <footer>
-                <p>&copy;ValdisHat<br>2006г</p>
+                <p>&copy;ValdisHat<br>&copy;DenisChecalev<br>2006г</p>
             </footer>
         `;
     }

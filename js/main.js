@@ -1,7 +1,10 @@
 import { Header } from './components/header.js';
 import { Footer } from './components/footer.js';
 import { HomePage } from './pages/homePage.js';
+import { ProfilePage } from './pages/profilePage.js';
 import { ProductPage } from './pages/productPage.js';
+import { OrdersPage } from './pages/ordersPage.js';
+import { CartPage } from './pages/cartPage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname.split('/').pop();
@@ -14,16 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
             new ProductPage().init();
             break;
         case 'orders.html':
-            new Orders().init();
+            new OrdersPage().init();
             break;
         case 'cart.html':
-            new Cart().init();
+            new CartPage().init();
             break;
         case 'portfolio.html':
             new Portfolio().init();
             break;
         case 'profile.html':
-            new Profile().init();
+            new ProfilePage().init();
             break;
         default:
             const header = new Header('header-container');

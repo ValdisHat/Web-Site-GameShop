@@ -1,19 +1,20 @@
+import { products } from '../data/products.js';
 import { ProductFilter } from './productFilter.js';
 
 export class Search {
-    constructor({ inputSelector, suggestionsSelector, products, onSearch }) {
-        this.input = document.querySelector(inputSelector);
-        this.suggestionsList = document.querySelector(suggestionsSelector);
-        this.products = products;
-        this.onSearch = onSearch;
+    constructor() {
+        this.input = document.querySelector('.search-input');
+        this.suggestionsList = document.querySelector('.search-suggestions');
         this.maxSuggestions = 5;
     }
 
     init() {
         if (!this.input || !this.suggestionsList) {
-            console.error('Search: input или suggestionsList не найден');
+            console.error('Search элементы не найдены');
             return;
         }
+
+        this.fillInputFromUrl();
 
         this.input.addEventListener('input', () => {
             this.renderSuggestions();
@@ -22,7 +23,7 @@ export class Search {
         this.input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                this.runSearch();
+                this.goToHomeWithQuery(this.input.value);
             }
         });
 
@@ -33,22 +34,31 @@ export class Search {
         });
     }
 
-    runSearch() {
-        const query = this.input.value.trim();
+    fillInputFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('search');
 
-        const filteredProducts = ProductFilter.filter(this.products, query);
-
-        this.clearSuggestions();
-
-        if (this.onSearch) {
-            this.onSearch(filteredProducts, query);
+        if (query) {
+            this.input.value = query;
         }
+    }
+
+    goToHomeWithQuery(queryValue) {
+        const query = queryValue.trim();
+
+        if (!query) {
+            window.location.href = './Home.html';
+            return;
+        }
+
+        window.location.href = `./Home.html?search=${encodeURIComponent(query)}`;
     }
 
     renderSuggestions() {
         const query = this.input.value.trim();
+
         const suggestions = ProductFilter.getSuggestions(
-            this.products,
+            products,
             query,
             this.maxSuggestions
         );
@@ -68,6 +78,7 @@ export class Search {
             })
             .join('');
 
+        this.suggestionsList.classList.add('active');
         this.addSuggestionListeners();
     }
 
@@ -76,13 +87,16 @@ export class Search {
 
         items.forEach((item) => {
             item.addEventListener('click', () => {
-                this.input.value = item.textContent.trim();
-                this.runSearch();
+                const value = item.textContent.trim();
+                this.input.value = value;
+                this.clearSuggestions();
+                this.goToHomeWithQuery(value);
             });
         });
     }
 
     clearSuggestions() {
         this.suggestionsList.innerHTML = '';
+        this.suggestionsList.classList.remove('active');
     }
 }

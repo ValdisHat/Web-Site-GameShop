@@ -2,6 +2,8 @@ import { BasePage } from './basePage.js';
 import {productCard} from '../components/product-card.js';
 import {products} from '../data/products.js';
 import { Search } from '../components/search.js';
+import { ProductFilter } from '../components/productFilter.js';
+import { CartUtils } from '../components/cartUtils.js';
 
 export class HomePage extends BasePage {
     constructor() {
@@ -11,8 +13,14 @@ export class HomePage extends BasePage {
     init() {
         super.init();
 
-        this.renderProducts(products);
-        this.initSearch();
+        const searchQuery = this.getSearchQueryFromUrl();
+
+        if (searchQuery) {
+            const filteredProducts = ProductFilter.filter(products, searchQuery);
+            this.renderProducts(filteredProducts);
+        } else {
+            this.renderProducts(products);
+        }
 
     }
 
@@ -35,7 +43,23 @@ export class HomePage extends BasePage {
                 return card.render();
             })
             .join('');
+        this.addCartButtonsListeners();
     }
+
+    addCartButtonsListeners() {
+    document.querySelectorAll('.add-to-cart-button').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const productId = Number(button.dataset.id);
+
+            CartUtils.addToCart(productId);
+
+            button.textContent = 'Добавлено';
+        });
+    });
+}
 
     initSearch() {
         const search = new Search({
@@ -48,6 +72,12 @@ export class HomePage extends BasePage {
         });
 
         search.init();
+    }
+
+
+    getSearchQueryFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('search') || '';
     }
 
 
