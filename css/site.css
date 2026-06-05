@@ -475,6 +475,7 @@ nav a:hover {
     display: grid;
     grid-template-columns: var(--product-page-columns);
     gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
 }
 
 .pp-img-wrap {

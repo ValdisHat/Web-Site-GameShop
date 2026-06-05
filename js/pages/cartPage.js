@@ -1,9 +1,10 @@
 import { BasePage } from './basePage.js';
 import { products } from '../data/products.js';
+import { CartUtils } from '../components/cartUtils.js';
 
 class CartManager {
     constructor() {
-        this.cart = this.loadCart();
+        this.cart = CartUtils.getCart();
 
         this.container = document.getElementById('cart-page-container');
         this.modalContainer = document.getElementById('modal-container');
@@ -11,26 +12,19 @@ class CartManager {
         this.render();
     }
 
-    loadCart() {
-        const savedCart = localStorage.getItem('gameshop_cart');
-
-        if (savedCart) {
-            return JSON.parse(savedCart);
-        }
-
-        return [];
-    }
-
-    saveCart() {
-        localStorage.setItem('gameshop_cart', JSON.stringify(this.cart));
+    refreshCart() {
+        this.cart = CartUtils.getCart();
     }
 
     getCartProducts() {
         return this.cart
             .map((cartItem) => {
-                const product = products.find((product) => product.id === cartItem.id);
+                const product = products.find((product) => {
+                    return Number(product.id) === Number(cartItem.id);
+                });
 
                 if (!product) {
+                    console.warn('Товар не найден в products.js:', cartItem);
                     return null;
                 }
 
@@ -43,33 +37,20 @@ class CartManager {
     }
 
     updateQuantity(productId, delta) {
-        const item = this.cart.find((item) => item.id === productId);
-
-        if (!item) {
-            return;
-        }
-
-        const newQuantity = item.quantity + delta;
-
-        if (newQuantity <= 0) {
-            this.removeItem(productId);
-            return;
-        }
-
-        item.quantity = newQuantity;
-        this.saveCart();
+        CartUtils.updateQuantity(productId, delta);
+        this.refreshCart();
         this.render();
     }
 
     removeItem(productId) {
-        this.cart = this.cart.filter((item) => item.id !== productId);
-        this.saveCart();
+        CartUtils.removeFromCart(productId);
+        this.refreshCart();
         this.render();
     }
 
     clearCart() {
-        this.cart = [];
-        this.saveCart();
+        CartUtils.clearCart();
+        this.refreshCart();
         this.render();
     }
 
@@ -113,7 +94,10 @@ class CartManager {
 
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                modal.remove();
+                if (modal) {
+                    modal.remove();
+                }
+
                 this.clearCart();
             });
         }
@@ -123,6 +107,7 @@ class CartManager {
         return `
             <div class="empty-cart">
                 <h2>🛒 Корзина пуста</h2>
+
                 <a href="./Home.html" class="continue-shopping">
                     В магазин
                 </a>
@@ -151,7 +136,9 @@ class CartManager {
 
                         <div class="cart-item-info">
                             <a href="./product.html?id=${item.id}" class="cart-item-title-link">
-                                <h3 class="cart-item-title">${item.title}</h3>
+                                <h3 class="cart-item-title">
+                                    ${item.title}
+                                </h3>
                             </a>
 
                             <div class="cart-item-price">

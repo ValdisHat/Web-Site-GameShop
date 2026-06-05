@@ -6,10 +6,13 @@ import { ProductFilter } from '../components/productFilter.js';
 import { CartUtils } from '../components/cartUtils.js';
 
 export class HomePage extends BasePage {
+   
     constructor() {
         super();
         this.productsContainer = document.querySelector('#main-content');
     }
+
+    
     init() {
         super.init();
 
@@ -46,19 +49,20 @@ export class HomePage extends BasePage {
         this.addCartButtonsListeners();
     }
 
-    addCartButtonsListeners() {
-    document.querySelectorAll('.add-to-cart-button').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
+    addCartButtonsListeners() 
+    {
+        document.querySelectorAll('.add-to-cart-button').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                
 
-            const productId = Number(button.dataset.id);
+                const productId = Number(button.dataset.id);
 
-            CartUtils.addToCart(productId);
+                CartUtils.addToCart(productId);
 
-            button.textContent = 'Добавлено';
+                button.textContent = 'Добавлено';
+            });
         });
-    });
 }
 
     initSearch() {
