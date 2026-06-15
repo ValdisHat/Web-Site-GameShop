@@ -10,42 +10,79 @@ export class Header {
     }
 
     render() {
-        const navItemsHTML = NAVIGATION_LINKS.slice(1, 4).map(({ href, title, img, img_hover}) => {
-            const fileName = href.replace('./', '');
+        if (!this.container){
+            console.log(`${this.container}, не обнаружен!!!`);
+            return;
+        }
 
-            return `<li><a href="./${fileName}">
-                    <img src="${img}" alt="" class="default-img">
-                    <img src="${img_hover}" alt="" class="hover-img">
-                    ${title}
-                    </a></li>`;
-        }).join('');
+        const header = document.createElement("header")
+        header.className = "menu-container";
 
-        return `
-            <header class="menu-container">
-                <a class="logo" href="./Home.html">
-                    <img src="../../img/LogoForSite.png" alt="GameShop Logo">
-                </a>
-                <div class="search">
-                    <input type="text" class="search-input" placeholder="Search...">
-                    <ul class="search-suggestions"></ul>
-                </div>
-                <nav class="menu">
-                    <ul>
-                        ${navItemsHTML}
-                    </ul>
-                </nav>
-            </header>
-        `;
+        const logo = document.createElement("a");
+        logo.className = "logo";
+        logo.href = NAVIGATION_LINKS[0].href;
+
+        const img = document.createElement("img");
+        img.src = "../../img/LogoForSite.png";
+        img.alt = "GameShop Logo";
+
+        logo.appendChild(img);
+
+        const search_div = document.createElement("div");
+        search_div.className = "search";
+
+        const input_search = document.createElement("input");
+        input_search.className = "search-input";
+        input_search.placeholder = "Search...";
+
+        const ul = document.createElement("ul");
+        ul.className = "search-suggestions";
+
+        search_div.appendChild(input_search);
+        search_div.appendChild(ul);
+
+        const nav = this.CreateNavMenu(NAVIGATION_LINKS.slice(1,4))
+
+        header.appendChild(logo);
+        header.appendChild(search_div);
+        header.appendChild(nav);
+        this.container.appendChild(header);
+
+        const search = new Search();
+        search.init();
     }
 
-    init() {
-        if (this.container) {
-            this.container.innerHTML = this.render()
-            
-            const search = new Search();
-            search.init();
+    CreateNavMenu(links)
+    {
+            const nav = document.createElement("nav");
+            nav.className = "menu";
 
-            console.log('Header загружен');
-        }
+            const ul = document.createElement("ul");
+
+            links.forEach(link => {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                a.href = link.href;
+                
+                const img = document.createElement("img");
+                img.className = "default-img";
+                img.src = link.img;
+                const img_hover = document.createElement("img");
+                img_hover.className = "hover-img";
+                img_hover.src = link.img_hover;
+
+                const p = document.createElement("p");
+                p.textContent = link.title;
+
+                a.appendChild(img);
+                a.appendChild(img_hover);
+                a.appendChild(p);
+
+                li.appendChild(a);
+                ul.appendChild(li); 
+            });
+
+            nav.appendChild(ul)
+            return nav;
     }
 }

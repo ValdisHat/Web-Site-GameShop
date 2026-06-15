@@ -9,7 +9,7 @@ export class BasePage {
 
     init() {
         
-        this.header.init();
-        this.footer.init();
+        this.header.render();
+        this.footer.render();
     }
 }

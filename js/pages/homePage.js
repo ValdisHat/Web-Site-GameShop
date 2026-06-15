@@ -39,13 +39,12 @@ export class HomePage extends BasePage {
             `;
             return;
         }
+        
+        productsArray.forEach((product) => {
+            const card = new productCard(product);    
+            this.productsContainer.appendChild(card.render())
+        })
 
-        this.productsContainer.innerHTML = productsArray
-            .map((product) => {
-                const card = new productCard(product);
-                return card.render();
-            })
-            .join('');
         this.addCartButtonsListeners();
     }
 

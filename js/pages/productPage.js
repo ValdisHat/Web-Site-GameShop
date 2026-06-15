@@ -5,7 +5,7 @@ import { CartUtils } from '../components/cartUtils.js';
 export class ProductPage extends BasePage {
     constructor() {
         super();
-        this.productContainer = 'product-container';
+        this.container = document.getElementById('product-container');
     }
     init() {
         super.init();
@@ -19,71 +19,115 @@ export class ProductPage extends BasePage {
         const productId = this.getProductIdFromUrl();
         const product = products.find((item) => item.id === productId);
 
-        const container = document.getElementById(this.productContainer);
+        
 
-        if (!container) {
+        if (!this.container) {
             console.error('Контейнер product-container не найден');
             return;
         }
 
         if (!product) {
-            container.innerHTML = `
-                <section class="product-page">
-                    <h1>Товар не найден</h1>
-                    <a href="./Home.html">Вернуться на главную</a>
-                </section>
-            `;
+            this.productUndefind();
             return;
         }
 
-        container.innerHTML = `
-            <section class="product-page">
-                <div class="pp-img-wrap">
-                    <img 
-                        class="pp-img" 
-                        src="${product.img}" 
-                        alt="${product.title}"
-                    >
-                </div>
-                <div class="pp-content">
-                    <h1 class="pp-title">${product.title}</h1>
 
-                    <p class="pp-description">
-                        ${product.description}
-                    </p>
+        const section = document.createElement("section");
+        section.className = "product-page";
 
-                    <ul class="pp-info">
-                        <li>Жанр: ${product.genre}</li>
-                        <li>Платформа: ${product.platform}</li>
-                        <li>Цена: ${product.price} руб.</li>
-                    </ul>
+        const wrapper = document.createElement("div")
+        wrapper.className = "pp-img-wrap";
 
-                    <button class="pp-button add-to-cart-button" data-id="${product.id}">
-                        Добавить в корзину
-                    </button>
-                </div>
-            </section>
-        `;
+        const img = document.createElement("img");
+        img.className = "pp-img";
+        img.src = product.img;
+        img.alt = product.title;
+
+        wrapper.appendChild(img);
+        
+
+        const content = document.createElement("div");
+        content.className = "pp-content";
+
+        const h1 = document.createElement("h1");
+        h1.className = "pp-title";
+
+        const p = document.createElement("p");
+        p.className = "pp-description";
+        p.textContent = product.description;
+        
+        const ul = this.createUl("pp-info",product);
+
+        const button = document.createElement("button");
+        button.className = "pp-button add-to-cart-button";
+        button.dataset.id = product.id;
+        button.textContent = "Добавить в корзину"
+
+        content.appendChild(h1);
+        content.appendChild(p);
+        content.appendChild(ul);
+        content.appendChild(button);
+
+        section.appendChild(wrapper);
+        section.appendChild(content);
+
+        this.container.appendChild(section);
     }
-    getProductIdFromUrl() {
+
+    getProductIdFromUrl() 
+    {
         const params = new URLSearchParams(window.location.search);
         return Number(params.get('id'));
     }
 
-    addCartButtonListener() {
-    const button = document.querySelector('.add-to-cart-button');
+    addCartButtonListener() 
+    {
+        const button = document.querySelector('.add-to-cart-button');
 
-    if (!button) {
-        return;
+        if (!button) {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            const productId = Number(button.dataset.id);
+
+            CartUtils.addToCart(productId);
+
+            button.textContent = 'Добавлено';
+        });
     }
 
-    button.addEventListener('click', () => {
-        const productId = Number(button.dataset.id);
+    createUl(className, product)
+    {
+        const ul = document.createElement("ul");
+        ul.className = className
+        
+        const li_genre = document.createElement("li");
+        li_genre.textContent = `Жанр: ${product.genre}`;
 
-        CartUtils.addToCart(productId);
+        const li_platform = document.createElement("li");
+        li_platform.textContent = `Платформа: ${product.platform}`;
 
-        button.textContent = 'Добавлено';
-    });
+        const li_price = document.createElement("li");
+        li_price.textContent = `Цена: ${product.price} руб.`;
+        
+        ul.appendChild(li_genre);
+        ul.appendChild(li_platform);
+        ul.appendChild(li_price);
+        
+        return ul;
+    }
+
+    productUndefind()
+    {
+        const section = document.createElement("section");
+        section.className = "product-page";
+
+        const h1 = document.createElement("h1");
+        h1.textContent = "Товар не найден!"
+
+        section.appendChild(h1);
+        this.container.appendChild(section);
+    }
 }
 
-}

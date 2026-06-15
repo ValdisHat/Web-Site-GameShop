@@ -178,6 +178,11 @@ li {
     color: var(--color-text-secondary);
 }
 
+img
+{
+    user-select: none;
+}
+
 /* HEADER */
 .menu-container {
     margin-top: var(--spacing-xl);
@@ -255,7 +260,21 @@ li {
     background-color: var(--color-bg-secondary);
 }
 
+.menu
+{
+    
+}
+
 .menu ul {
+    position:fixed;
+    background-color: var(--color-bg-secondary);
+    margin: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding-top: var(--spacing-xs);
+
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -263,6 +282,8 @@ li {
     flex-wrap: wrap;
     gap: var(--menu-list-gap);
     list-style: none;
+    padding-left: auto;
+    width: 100vw;
 }
 
 .menu li {
@@ -300,8 +321,7 @@ li {
     -webkit-tap-highlight-color: transparent;
 }
 
-.menu a:hover,
-nav a:hover {
+.menu a:hover p{
     color: var(--color-brand);
 }
 
@@ -476,6 +496,8 @@ nav a:hover {
     grid-template-columns: var(--product-page-columns);
     gap: var(--spacing-xl);
     margin-bottom: var(--spacing-lg);
+
+    user-select: none;
 }
 
 .pp-img-wrap {
@@ -498,6 +520,7 @@ nav a:hover {
     flex-direction: column;
     gap: var(--spacing-lg);
     justify-content: start;
+    user-select:text;
 }
 
 .pp-info {
@@ -824,6 +847,13 @@ nav a:hover {
         --cart-grid-columns: repeat(3, minmax(0, 1fr));
         --product-page-image-height: 32rem;
         --menu-icon-width: 2.5rem;
+    }
+
+    .menu ul {
+        position:static;
+        background-color: inherit;
+        padding-top: var(--spacing-xs);
+        width: auto;
     }
 }
 
