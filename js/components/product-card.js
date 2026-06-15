@@ -7,7 +7,6 @@ export class productCard {
     }
 
     render() {
-
         const product_div = document.createElement("div");
         product_div.className = "product-card";
         product_div.dataset.id = this.id;

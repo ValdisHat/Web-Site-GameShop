@@ -8,7 +8,6 @@ export class BasePage {
     }
 
     init() {
-        
         this.header.render();
         this.footer.render();
     }

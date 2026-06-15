@@ -8,7 +8,6 @@ import { CartPage } from './pages/cartPage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname.split('/').pop();
-
     switch (currentPage) {
         case 'Home.html':
             new HomePage().init();
@@ -21,9 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
         case 'cart.html':
             new CartPage().init();
-            break;
-        case 'portfolio.html':
-            new Portfolio().init();
             break;
         case 'profile.html':
             new ProfilePage().init();

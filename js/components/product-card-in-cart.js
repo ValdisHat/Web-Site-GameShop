@@ -13,7 +13,6 @@ export class productCardInCart
 
         const img = document.createElement("img")
         img.className = "cart-item-image";
-        img.onerror = "this.src='./img/LogoForSite.png"
         img.src = item.img;
         img.alt = item.title;
 
