@@ -1,6 +1,7 @@
 import { BasePage } from './basePage.js';
 import { products } from '../data/products.js';
 import { CartUtils } from '../components/cartUtils.js';
+import { productCardInCart } from '../components/product-card-in-cart.js'
 
 class CartManager {
     constructor() {
@@ -74,12 +75,15 @@ class CartManager {
             return;
         }
 
+        const cartProducts = this.getCartProducts();
+        const total = this.getTotal();
+        const totalItems = this.getTotalItems();
+
         const modalHTML = `
             <div id="order-modal" class="modal">
                 <div class="modal-content">
                     <h3>✅ Заказ оформлен!</h3>
                     <p>Спасибо за покупку!</p>
-
                     <button class="modal-close" id="modal-close-btn">
                         Закрыть
                     </button>
@@ -97,100 +101,102 @@ class CartManager {
                 if (modal) {
                     modal.remove();
                 }
-
+                
+                const orders = this.getSavedOrders();
+                
+                const newOrder = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString(),
+                    items: this.cart.map(item => ({ 
+                        id: Number(item.id), 
+                        quantity: item.quantity 
+                    })),
+                    total: total,
+                    totalItems: totalItems
+                };
+                
+                orders.unshift(newOrder);
+                localStorage.setItem('gameShopOrders', JSON.stringify(orders));
+                
+                window.dispatchEvent(new CustomEvent('orderCreated', { detail: newOrder }));
+                
                 this.clearCart();
             });
         }
     }
 
-    renderEmptyCart() {
-        return `
-            <div class="empty-cart">
-                <h2>🛒 Корзина пуста</h2>
+    getSavedOrders() {
+        const savedOrders = localStorage.getItem('gameShopOrders');
+        return savedOrders ? JSON.parse(savedOrders) : [];
+    }
 
-                <a href="./Home.html" class="continue-shopping">
-                    В магазин
-                </a>
-            </div>
-        `;
+
+    renderEmptyCart() {
+
+        const div = document.createElement("div");
+        div.className = "empty-cart";
+
+        const h2 = document.createElement("h2");
+        h2.textContent = "🛒 Корзина пуста";
+
+        const a = document.createElement("a");
+        a.className = "continue-shopping";
+        a.href = "./Home.html";
+        a.textContent = "В магазин";
+
+        div.appendChild(h2);
+        div.appendChild(a);
+
+        return div;
     }
 
     renderCartItems() {
         const cartProducts = this.getCartProducts();
         const totalItems = this.getTotalItems();
 
-        return `
-            <h1 class="cart-title">Моя корзина</h1>
+        const h1 = document.createElement("h1");
+        h1.className = "cart-title";
+        h1.textContent = "Моя корзина"
+        
+        const cart_grid = document.createElement("div");
+        cart_grid.className = "cart-grid";
 
-            <div class="cart-grid">
-                ${cartProducts.map((item) => `
-                    <div class="cart-item" data-id="${item.id}">
-                        <a href="./product.html?id=${item.id}" class="cart-item-image-link">
-                            <img 
-                                src="${item.img}" 
-                                alt="${item.title}" 
-                                class="cart-item-image"
-                                onerror="this.src='./img/LogoForSite.png'"
-                            >
-                        </a>
+        const cardRender = new productCardInCart();
 
-                        <div class="cart-item-info">
-                            <a href="./product.html?id=${item.id}" class="cart-item-title-link">
-                                <h3 class="cart-item-title">
-                                    ${item.title}
-                                </h3>
-                            </a>
+        cartProducts.forEach(item => {
+            cart_grid.appendChild(cardRender.renderCardInCart(item));
+        });
 
-                            <div class="cart-item-price">
-                                ${item.price.toLocaleString()} ₽
-                            </div>
+        const cart_summary = document.createElement("div");
+        cart_summary.className = "cart-summary";
 
-                            <div class="quantity-control">
-                                <button class="minus" data-id="${item.id}">
-                                    -
-                                </button>
+        const summary_content = document.createElement("div");
+        summary_content.className = "summary-content";
 
-                                <span class="quantity-value">
-                                    ${item.quantity}
-                                </span>
+        const total_items = document.createElement("div");
+        total_items.className = "total-items";
+        total_items.innerHTML = `Количество товаров:
+                        <span>${totalItems}</span>`
+        
+        const total_amount = document.createElement("div");
+        total_amount.className = "total-amount";
+        total_amount.innerHTML = `Общая сумма:
+                        <span>${this.getTotal().toLocaleString()} ₽</span>`;
+        
+        const button = document.createElement("button");
+        button.className = "checkout-btn";
+        button.id = "checkout-button";
+        button.textContent = "Оформить заказ";
 
-                                <button class="plus" data-id="${item.id}">
-                                    +
-                                </button>
-                            </div>
+        summary_content.appendChild(total_items);
+        summary_content.appendChild(total_amount);
+        summary_content.appendChild(button);
 
-                            <div class="item-total">
-                                <strong>Итого:</strong>
-                                ${(item.price * item.quantity).toLocaleString()} ₽
-                            </div>
+        cart_summary.appendChild(summary_content);
 
-                            <button class="remove-btn" data-id="${item.id}">
-                                🗑 Удалить
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div class="cart-summary">
-                <div class="summary-content">
-                    <div class="total-items">
-                        Количество товаров:
-                        <span>${totalItems}</span>
-                    </div>
-
-                    <div class="total-amount">
-                        Общая сумма:
-                        <span>${this.getTotal().toLocaleString()} ₽</span>
-                    </div>
-
-                    <button id="checkout-button" class="checkout-btn">
-                        Оформить заказ
-                    </button>
-                </div>
-            </div>
-        `;
+        return [h1,cart_grid,cart_summary];
     }
+    
 
     render() {
         if (!this.container) {
@@ -198,12 +204,21 @@ class CartManager {
             return;
         }
 
+        this.container.innerHTML = ""
+
         if (this.cart.length === 0) {
-            this.container.innerHTML = this.renderEmptyCart();
+            this.container.appendChild(this.renderEmptyCart());
             return;
         }
 
-        this.container.innerHTML = this.renderCartItems();
+       
+        
+        const cartItems = this.renderCartItems();
+
+        cartItems.forEach(Item => {
+            this.container.appendChild(Item);
+        });
+        
         this.attachEventListeners();
     }
 

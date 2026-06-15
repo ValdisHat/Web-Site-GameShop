@@ -4,17 +4,16 @@ export class Footer {
     }
 
     render() {
-        return `
-            <footer>
-                <p>&copy;ValdisHat<br>&copy;DenisChecalev<br>2006г</p>
-            </footer>
-        `;
-    }
-
-    init() {
-        if (this.container) {
-            this.container.innerHTML = this.render();
-            console.log('Футер загружен');
+        if (!this.container){
+            console.log(`${this.container}, не обнаружен!!!`);
+            return;
         }
+
+        const footer = document.createElement("footer");
+        const p = document.createElement("p");
+        p.innerHTML = `&copy;ValdisHat<br>&copy;DenisChecalev<br>2006г`;
+
+        footer.appendChild(p);
+        this.container.appendChild(footer);
     }
 }
