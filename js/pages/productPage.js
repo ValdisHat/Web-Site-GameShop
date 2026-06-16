@@ -322,4 +322,3 @@ export class ProductPage extends BasePage {
         this.container.appendChild(section);
     }
 }
-

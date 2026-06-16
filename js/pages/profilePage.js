@@ -16,134 +16,333 @@ export class ProfilePage extends BasePage {
 
     render() {
         console.log('Rendering ProfilePage');
+
         const savedUser = sessionStorage.getItem('currentUser');
+
         if (savedUser) {
             this.currentUser = JSON.parse(savedUser);
             this.showProfileInfo();
         } else {
             this.showAuthForm();
         }
+
         this.setupEventListeners();
     }
 
-    showAuthForm() {
+    clearMainContent() {
         const mainContent = document.getElementById('profile-main-container');
-        
-        if (mainContent) {
-            if (this.showLogin) {
-                mainContent.innerHTML = this.renderLoginForm();
-            } else {
-                mainContent.innerHTML = this.renderRegisterForm();
-            }
-        } else {
+
+        if (!mainContent) {
             console.error('profile-main-container not found!');
+            return null;
+        }
+
+        mainContent.textContent = '';
+        return mainContent;
+    }
+
+    showAuthForm() {
+        const mainContent = this.clearMainContent();
+
+        if (!mainContent) return;
+
+        if (this.showLogin) {
+            mainContent.appendChild(this.renderLoginForm());
+        } else {
+            mainContent.appendChild(this.renderRegisterForm());
         }
     }
 
+    createFormGroup(labelText, inputType, inputId, inputName, placeholder) {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = inputId;
+        label.textContent = labelText;
+
+        const input = document.createElement('input');
+        input.type = inputType;
+        input.id = inputId;
+        input.name = inputName;
+        input.placeholder = placeholder;
+        input.required = true;
+
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+
+        return formGroup;
+    }
+
+    createButton(type, className, textContent, id = null) {
+        const button = document.createElement('button');
+
+        button.type = type;
+        button.className = className;
+        button.textContent = textContent;
+
+        if (id) {
+            button.id = id;
+        }
+
+        return button;
+    }
+
     renderLoginForm() {
-        return `
-            <div class="profile-container">
-                <div class="auth-form">
-                    <h2>Вход в аккаунт</h2>
-                    <form id="login-form">
-                        <div class="form-group">
-                            <label for="username">Имя пользователя:</label>
-                            <input type="text" id="login-username" name="username" placeholder="Введите имя пользователя" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Пароль:</label>
-                            <input type="password" id="login-password" name="password" placeholder="Введите пароль" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Войти</button>
-                    </form>
-                    <div id="login-error" class="error-message"></div>
-                    <p class="auth-switch">
-                        Нет аккаунта? 
-                        <a href="#" id="switch-to-register">Зарегистрироваться</a>
-                    </p>
-                </div>
-            </div>
-        `;
+        const profileContainer = document.createElement('div');
+        profileContainer.className = 'profile-container';
+
+        const authForm = document.createElement('div');
+        authForm.className = 'auth-form';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Вход в аккаунт';
+
+        const form = document.createElement('form');
+        form.id = 'login-form';
+
+        const usernameGroup = this.createFormGroup(
+            'Имя пользователя:',
+            'text',
+            'login-username',
+            'username',
+            'Введите имя пользователя'
+        );
+
+        const passwordGroup = this.createFormGroup(
+            'Пароль:',
+            'password',
+            'login-password',
+            'password',
+            'Введите пароль'
+        );
+
+        const button = this.createButton(
+            'submit',
+            'btn btn-primary',
+            'Войти'
+        );
+
+        form.appendChild(usernameGroup);
+        form.appendChild(passwordGroup);
+        form.appendChild(button);
+
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'login-error';
+        errorDiv.className = 'error-message';
+
+        const switchText = document.createElement('p');
+        switchText.className = 'auth-switch';
+        switchText.append('Нет аккаунта? ');
+
+        const switchLink = document.createElement('a');
+        switchLink.href = '#';
+        switchLink.id = 'switch-to-register';
+        switchLink.textContent = 'Зарегистрироваться';
+
+        switchText.appendChild(switchLink);
+
+        authForm.appendChild(title);
+        authForm.appendChild(form);
+        authForm.appendChild(errorDiv);
+        authForm.appendChild(switchText);
+
+        profileContainer.appendChild(authForm);
+
+        return profileContainer;
     }
 
     renderRegisterForm() {
-        return `
-            <div class="profile-container">
-                <div class="auth-form">
-                    <h2>Регистрация</h2>
-                    <form id="register-form">
-                        <div class="form-group">
-                            <label for="reg-username">Имя пользователя:</label>
-                            <input type="text" id="reg-username" name="username" placeholder="Минимум 3 символа" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reg-password">Пароль:</label>
-                            <input type="password" id="reg-password" name="password" placeholder="Минимум 4 символа" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirm-password">Подтверждение пароля:</label>
-                            <input type="password" id="confirm-password" name="confirm-password" placeholder="Повторите пароль" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
-                    </form>
-                    <div id="register-error" class="error-message"></div>
-                    <p class="auth-switch">
-                        Уже есть аккаунт? 
-                        <a href="#" id="switch-to-login">Войти</a>
-                    </p>
-                </div>
-            </div>
-        `;
+        const profileContainer = document.createElement('div');
+        profileContainer.className = 'profile-container';
+
+        const authForm = document.createElement('div');
+        authForm.className = 'auth-form';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Регистрация';
+
+        const form = document.createElement('form');
+        form.id = 'register-form';
+
+        const usernameGroup = this.createFormGroup(
+            'Имя пользователя:',
+            'text',
+            'reg-username',
+            'username',
+            'Минимум 3 символа'
+        );
+
+        const passwordGroup = this.createFormGroup(
+            'Пароль:',
+            'password',
+            'reg-password',
+            'password',
+            'Минимум 4 символа'
+        );
+
+        const confirmPasswordGroup = this.createFormGroup(
+            'Подтверждение пароля:',
+            'password',
+            'confirm-password',
+            'confirm-password',
+            'Повторите пароль'
+        );
+
+        const button = this.createButton(
+            'submit',
+            'btn btn-primary',
+            'Зарегистрироваться'
+        );
+
+        form.appendChild(usernameGroup);
+        form.appendChild(passwordGroup);
+        form.appendChild(confirmPasswordGroup);
+        form.appendChild(button);
+
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'register-error';
+        errorDiv.className = 'error-message';
+
+        const switchText = document.createElement('p');
+        switchText.className = 'auth-switch';
+        switchText.append('Уже есть аккаунт? ');
+
+        const switchLink = document.createElement('a');
+        switchLink.href = '#';
+        switchLink.id = 'switch-to-login';
+        switchLink.textContent = 'Войти';
+
+        switchText.appendChild(switchLink);
+
+        authForm.appendChild(title);
+        authForm.appendChild(form);
+        authForm.appendChild(errorDiv);
+        authForm.appendChild(switchText);
+
+        profileContainer.appendChild(authForm);
+
+        return profileContainer;
     }
 
     renderProfileInfo() {
-        const statusText = this.currentUser.status === 'admin' ? '👑 Администратор' : 'Пользователь';
-        const accountTypeText = this.currentUser.status === 'admin' ? 'Администратор' : 'Обычный пользователь';
-        
-        return `
-            <div class="profile-container">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar">
-                            <img src="../img/default-avatar.png" alt="Аватар" onerror="this.src='https://via.placeholder.com/100'">
-                        </div>
-                        <div class="profile-status ${this.currentUser.status}">
-                            ${statusText}
-                        </div>
-                    </div>
-                    <div class="profile-details">
-                        <h2>Добро пожаловать, ${this.currentUser.username}!</h2>
-                        <div class="info-row">
-                            <span class="info-label">ID пользователя:</span>
-                            <span class="info-value">#${this.currentUser.id}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Тип аккаунта:</span>
-                            <span class="info-value">${accountTypeText}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Дата регистрации:</span>
-                            <span class="info-value">${new Date().toLocaleDateString('ru-RU')}</span>
-                        </div>
-                    </div>
-                    <div class="profile-actions">
-                        <button id="logout-btn" class="btn btn-danger">Выйти</button>
-                    </div>
-                </div>
-            </div>
-        `;
+        const profileContainer = document.createElement('div');
+        profileContainer.className = 'profile-container';
+
+        const profileCard = document.createElement('div');
+        profileCard.className = 'profile-card';
+
+        const profileHeader = document.createElement('div');
+        profileHeader.className = 'profile-header';
+
+        const profileAvatar = document.createElement('div');
+        profileAvatar.className = 'profile-avatar';
+
+        const avatarImg = document.createElement('img');
+        avatarImg.src = '../img/default-avatar.png';
+        avatarImg.alt = 'Аватар';
+
+        avatarImg.onerror = () => {
+            avatarImg.onerror = null;
+            avatarImg.src = 'https://via.placeholder.com/100';
+        };
+
+        profileAvatar.appendChild(avatarImg);
+
+        const profileStatus = document.createElement('div');
+        profileStatus.className = `profile-status ${this.currentUser.status}`;
+
+        if (this.currentUser.status === 'admin') {
+            profileStatus.textContent = 'Администратор';
+        } else {
+            profileStatus.textContent = 'Пользователь';
+        }
+
+        profileHeader.appendChild(profileAvatar);
+        profileHeader.appendChild(profileStatus);
+
+        const profileDetails = document.createElement('div');
+        profileDetails.className = 'profile-details';
+
+        const title = document.createElement('h2');
+        title.textContent = `Добро пожаловать, ${this.currentUser.username}!`;
+
+        const idRow = this.createInfoRow(
+            'ID пользователя:',
+            `#${this.currentUser.id}`
+        );
+
+        const accountTypeText = this.currentUser.status === 'admin'
+            ? 'Администратор'
+            : 'Обычный пользователь';
+
+        const typeRow = this.createInfoRow(
+            'Тип аккаунта:',
+            accountTypeText
+        );
+
+        const dateRow = this.createInfoRow(
+            'Дата регистрации:',
+            new Date().toLocaleDateString('ru-RU')
+        );
+
+        profileDetails.appendChild(title);
+        profileDetails.appendChild(idRow);
+        profileDetails.appendChild(typeRow);
+        profileDetails.appendChild(dateRow);
+
+        const profileActions = document.createElement('div');
+        profileActions.className = 'profile-actions';
+
+        const logoutButton = this.createButton(
+            'button',
+            'btn btn-danger',
+            'Выйти',
+            'logout-btn'
+        );
+
+        profileActions.appendChild(logoutButton);
+
+        profileCard.appendChild(profileHeader);
+        profileCard.appendChild(profileDetails);
+        profileCard.appendChild(profileActions);
+
+        profileContainer.appendChild(profileCard);
+
+        return profileContainer;
+    }
+
+    createInfoRow(labelText, valueText) {
+        const infoRow = document.createElement('div');
+        infoRow.className = 'info-row';
+
+        const label = document.createElement('span');
+        label.className = 'info-label';
+        label.textContent = labelText;
+
+        const value = document.createElement('span');
+        value.className = 'info-value';
+        value.textContent = valueText;
+
+        infoRow.appendChild(label);
+        infoRow.appendChild(value);
+
+        return infoRow;
     }
 
     showProfileInfo() {
-        const mainContent = document.getElementById('profile-main-container');
-        
-        if (mainContent) {
-            mainContent.innerHTML = this.renderProfileInfo();
-            
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => this.logout());
-            }
+        const mainContent = this.clearMainContent();
+
+        if (!mainContent) return;
+
+        mainContent.appendChild(this.renderProfileInfo());
+
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                this.logout();
+            });
         }
     }
 
@@ -177,19 +376,27 @@ export class ProfilePage extends BasePage {
         const errorDiv = document.getElementById('login-error');
 
         if (!username || !password) {
-            if (errorDiv) errorDiv.textContent = 'Пожалуйста, заполните все поля';
+            if (errorDiv) {
+                errorDiv.textContent = 'Пожалуйста, заполните все поля';
+            }
+
             return;
         }
 
         const user = validateLogin(username, password);
-        
+
         if (user) {
             this.currentUser = user;
             sessionStorage.setItem('currentUser', JSON.stringify(user));
             this.showProfileInfo();
-            if (errorDiv) errorDiv.textContent = '';
+
+            if (errorDiv) {
+                errorDiv.textContent = '';
+            }
         } else {
-            if (errorDiv) errorDiv.textContent = 'Неверное имя пользователя или пароль';
+            if (errorDiv) {
+                errorDiv.textContent = 'Неверное имя пользователя или пароль';
+            }
         }
     }
 
@@ -200,37 +407,59 @@ export class ProfilePage extends BasePage {
         const errorDiv = document.getElementById('register-error');
 
         if (!username || !password || !confirmPassword) {
-            if (errorDiv) errorDiv.textContent = 'Пожалуйста, заполните все поля';
+            if (errorDiv) {
+                errorDiv.textContent = 'Пожалуйста, заполните все поля';
+            }
+
             return;
         }
 
         if (username.length < 3) {
-            if (errorDiv) errorDiv.textContent = 'Имя пользователя должно содержать минимум 3 символа';
+            if (errorDiv) {
+                errorDiv.textContent = 'Имя пользователя должно содержать минимум 3 символа';
+            }
+
             return;
         }
 
         if (password.length < 4) {
-            if (errorDiv) errorDiv.textContent = 'Пароль должен содержать минимум 4 символа';
+            if (errorDiv) {
+                errorDiv.textContent = 'Пароль должен содержать минимум 4 символа';
+            }
+
             return;
         }
 
         if (password !== confirmPassword) {
-            if (errorDiv) errorDiv.textContent = 'Пароли не совпадают';
+            if (errorDiv) {
+                errorDiv.textContent = 'Пароли не совпадают';
+            }
+
             return;
         }
 
-        const existingUser = accounts.find(acc => acc.username === username);
+        const existingUser = accounts.find((acc) => {
+            return acc.username === username;
+        });
+
         if (existingUser) {
-            if (errorDiv) errorDiv.textContent = 'Имя пользователя уже существует';
+            if (errorDiv) {
+                errorDiv.textContent = 'Имя пользователя уже существует';
+            }
+
             return;
         }
 
         const newUser = addAccount(username, password);
+
         this.currentUser = newUser;
         sessionStorage.setItem('currentUser', JSON.stringify(newUser));
         this.showProfileInfo();
-        
-        if (errorDiv) errorDiv.textContent = '';
+
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+
         alert('Аккаунт успешно создан! Добро пожаловать в GameShop!');
     }
 

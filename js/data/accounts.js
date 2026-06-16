@@ -1,4 +1,3 @@
-// js/data/accounts.js
 export const accounts = [
   {
     id: 1,
@@ -20,7 +19,7 @@ export const accounts = [
   }
 ];
 
-// Helper function to add new account
+
 export function addAccount(username, password) {
   const newId = accounts.length > 0 ? Math.max(...accounts.map(a => a.id)) + 1 : 1;
   const newAccount = {
@@ -33,12 +32,12 @@ export function addAccount(username, password) {
   return newAccount;
 }
 
-// Helper function to find account by username
+
 export function findAccountByUsername(username) {
   return accounts.find(acc => acc.username === username);
 }
 
-// Helper function to validate login
+
 export function validateLogin(username, password) {
   const account = findAccountByUsername(username);
   if (account && account.password === password) {

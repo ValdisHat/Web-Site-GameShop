@@ -75,6 +75,10 @@ class CartManager {
             return;
         }
 
+        const cartProducts = this.getCartProducts();
+        const total = this.getTotal();
+        const totalItems = this.getTotalItems();
+
         const order_modal = document.createElement("div");
         order_modal.className = "modal";
         order_modal.id = "order-modal";
@@ -105,16 +109,42 @@ class CartManager {
         const modal = document.getElementById('order-modal');
         const closeBtn = document.getElementById('modal-close-btn');
 
+
+
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 if (modal) {
                     modal.remove();
                 }
-
+                
+                const orders = this.getSavedOrders();
+                
+                const newOrder = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString(),
+                    items: this.cart.map(item => ({ 
+                        id: Number(item.id), 
+                        quantity: item.quantity 
+                    })),
+                    total: total,
+                    totalItems: totalItems
+                };
+                
+                orders.unshift(newOrder);
+                localStorage.setItem('gameShopOrders', JSON.stringify(orders));
+                
+                window.dispatchEvent(new CustomEvent('orderCreated', { detail: newOrder }));
+                
                 this.clearCart();
             });
         }
     }
+
+    getSavedOrders() {
+        const savedOrders = localStorage.getItem('gameShopOrders');
+        return savedOrders ? JSON.parse(savedOrders) : [];
+    }
+
 
     renderEmptyCart() {
 

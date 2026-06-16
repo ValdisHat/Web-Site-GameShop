@@ -1,6 +1,5 @@
 export class productCardInCart
 {
-
     renderCardInCart(item)
     {
         const cart_item = document.createElement("div");

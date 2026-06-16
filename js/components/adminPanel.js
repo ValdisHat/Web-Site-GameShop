@@ -1,7 +1,4 @@
 export class adminPanel {
-
-
-
     createForm(product)
     {
         const form = document.createElement("form");
