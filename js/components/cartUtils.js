@@ -1,0 +1,55 @@
+// components/CartUtils.js
+export class CartUtils {
+    static getCart() {
+        return JSON.parse(localStorage.getItem('gameStoreCart') || '[]');
+    }
+
+    static saveCart(cart) {
+        localStorage.setItem('gameStoreCart', JSON.stringify(cart));
+    }
+
+    static addToCart(productId) {
+        const cart = this.getCart();
+        const existing = cart.find(item => item.id === productId);
+        
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({ id: productId, quantity: 1 });
+        }
+        
+        this.saveCart(cart);
+        return cart;
+    }
+
+    static updateQuantity(productId, quantity) {
+        const cart = this.getCart();
+        const index = cart.findIndex(item => item.id === productId);
+        
+        if (index !== -1) {
+            if (quantity <= 0) {
+                cart.splice(index, 1);
+            } else {
+                cart[index].quantity = quantity;
+            }
+            this.saveCart(cart);
+        }
+        return cart;
+    }
+
+    static removeFromCart(productId) {
+        const cart = this.getCart();
+        const index = cart.findIndex(item => item.id === productId);
+        
+        if (index !== -1) {
+            cart.splice(index, 1);
+            this.saveCart(cart);
+        }
+        return cart;
+    }
+
+    static clearCart() {
+        localStorage.removeItem('gameStoreCart');
+        return [];
+    }
+}
