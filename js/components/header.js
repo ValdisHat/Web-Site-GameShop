@@ -28,6 +28,10 @@ export class Header {
 
         logo.appendChild(img);
 
+        const catalog = document.createElement("button");
+        catalog.className = "catalog-button";
+        catalog.textContent = "Каталог";
+
         const search_div = document.createElement("div");
         search_div.className = "search";
 
@@ -44,6 +48,7 @@ export class Header {
         const nav = this.CreateNavMenu(NAVIGATION_LINKS.slice(1,4))
 
         header.appendChild(logo);
+        header.appendChild(catalog);
         header.appendChild(search_div);
         header.appendChild(nav);
         this.container.appendChild(header);
@@ -84,5 +89,12 @@ export class Header {
 
             nav.appendChild(ul)
             return nav;
+    }
+
+    attachButtonEvent(button, func)
+    {
+        button.addEventListener('click', () => {
+            func();
+        });
     }
 }
