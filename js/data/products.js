@@ -66,7 +66,7 @@ const defaultProducts = [
         releaseDate: "2018",
         developer: "Rockstar Games",
         img: "../img/Red.jpeg",
-        quantityOrders: 0,
+        quantityOrders: 3,
     },
     {
         id: 6,
@@ -79,7 +79,7 @@ const defaultProducts = [
         releaseDate: "2013",
         developer: "Rockstar North",
         img: "../img/GTA5.jpeg",
-        quantityOrders: 0,
+        quantityOrders: 5,
     },
     {
         id: 7,
@@ -92,7 +92,7 @@ const defaultProducts = [
         releaseDate: "2011",
         developer: "Mojang Studios",
         img: "../img/minecraft.jpeg",
-        quantityOrders: 0,
+        quantityOrders: 6,
     },
     {
         id: 8,
@@ -222,7 +222,7 @@ const defaultProducts = [
         releaseDate: "2018",
         developer: "Innersloth",
         img: "../img/AmongUs.jpg",
-        quantityOrders: 0,
+        quantityOrders: 1,
     },
     {
         id: 18,

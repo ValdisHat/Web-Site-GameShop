@@ -1,23 +1,25 @@
+// js/components/header.js
 import { NAVIGATION_LINKS } from '../data/constants.js';
 import { Search } from './search.js';
+
 export class Header {
     constructor(containerId = "header-container") {
         this.container = document.getElementById(containerId);
         
-
         const pathParts = window.location.pathname.split('/');
         this.currentPage = pathParts.pop() || 'Home.html';
     }
 
     render() {
         if (!this.container){
-            console.log(`${this.container}, не обнаружен!!!`);
+            console.log('Header контейнер не обнаружен!!!');
             return;
         }
 
-        const header = document.createElement("header")
+        const header = document.createElement("header");
         header.className = "menu-container";
 
+        // Логотип
         const logo = document.createElement("a");
         logo.className = "logo";
         logo.href = NAVIGATION_LINKS[0].href;
@@ -28,10 +30,34 @@ export class Header {
 
         logo.appendChild(img);
 
+        // Кнопка каталога - переключатель
         const catalog = document.createElement("button");
         catalog.className = "catalog-button";
         catalog.textContent = "Каталог";
+        catalog.addEventListener('click', () => {
+            // Проверяем, находимся ли мы на главной странице
+            const currentPage = window.location.pathname.split('/').pop() || 'Home.html';
+            
+            if (currentPage !== 'Home.html') {
+                // Если мы не на главной - просто переходим на главную с каталогом
+                window.location.href = 'Home.html?catalog=true';
+                return;
+            }
+            
+            // Если мы на главной - проверяем параметр catalog
+            const params = new URLSearchParams(window.location.search);
+            const isCatalogOpen = params.get('catalog') === 'true';
+            
+            if (isCatalogOpen) {
+                // Если каталог открыт - закрываем (переходим на главную без параметров)
+                window.location.href = 'Home.html';
+            } else {
+                // Если закрыт - открываем
+                window.location.href = 'Home.html?catalog=true';
+            }
+        });
 
+        // Поиск
         const search_div = document.createElement("div");
         search_div.className = "search";
 
@@ -45,7 +71,8 @@ export class Header {
         search_div.appendChild(input_search);
         search_div.appendChild(ul);
 
-        const nav = this.CreateNavMenu(NAVIGATION_LINKS.slice(1,4))
+        // Навигационное меню
+        const nav = this.CreateNavMenu(NAVIGATION_LINKS.slice(1, 4));
 
         header.appendChild(logo);
         header.appendChild(catalog);
@@ -57,42 +84,41 @@ export class Header {
         search.init();
     }
 
-    CreateNavMenu(links)
-    {
-            const nav = document.createElement("nav");
-            nav.className = "menu";
+    CreateNavMenu(links) {
+        const nav = document.createElement("nav");
+        nav.className = "menu";
 
-            const ul = document.createElement("ul");
+        const ul = document.createElement("ul");
 
-            links.forEach(link => {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                a.href = link.href;
-                
-                const img = document.createElement("img");
-                img.className = "default-img";
-                img.src = link.img;
-                const img_hover = document.createElement("img");
-                img_hover.className = "hover-img";
-                img_hover.src = link.img_hover;
+        links.forEach(link => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = link.href;
+            
+            const img = document.createElement("img");
+            img.className = "default-img";
+            img.src = link.img;
+            
+            const img_hover = document.createElement("img");
+            img_hover.className = "hover-img";
+            img_hover.src = link.img_hover;
 
-                const p = document.createElement("p");
-                p.textContent = link.title;
+            const p = document.createElement("p");
+            p.textContent = link.title;
 
-                a.appendChild(img);
-                a.appendChild(img_hover);
-                a.appendChild(p);
+            a.appendChild(img);
+            a.appendChild(img_hover);
+            a.appendChild(p);
 
-                li.appendChild(a);
-                ul.appendChild(li); 
-            });
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
 
-            nav.appendChild(ul)
-            return nav;
+        nav.appendChild(ul);
+        return nav;
     }
 
-    attachButtonEvent(button, func)
-    {
+    attachButtonEvent(button, func) {
         button.addEventListener('click', () => {
             func();
         });
