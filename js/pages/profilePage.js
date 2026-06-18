@@ -1,11 +1,15 @@
+// profilePage.js
 import { BasePage } from './basePage.js';
 import { accounts, addAccount, validateLogin } from '../data/accounts.js';
+import { addProduct } from '../data/products.js';
 
 export class ProfilePage extends BasePage {
     constructor() {
         super();
         this.currentUser = null;
         this.showLogin = true;
+        this.isAddingProduct = false;
+        this.selectedImage = null;
     }
 
     init() {
@@ -18,7 +22,6 @@ export class ProfilePage extends BasePage {
         console.log('Rendering ProfilePage');
 
         const savedUser = sessionStorage.getItem('currentUser');
-
         if (savedUser) {
             this.currentUser = JSON.parse(savedUser);
             this.showProfileInfo();
@@ -294,6 +297,25 @@ export class ProfilePage extends BasePage {
         const profileActions = document.createElement('div');
         profileActions.className = 'profile-actions';
 
+        // Кнопка "Добавить товар" только для администратора
+        if (this.currentUser.status === 'admin') {
+            const addProductBtn = this.createButton(
+                'button',
+                'btn btn-success add-product-btn',
+                'Добавить товар',
+                'add-product-btn'
+            );
+
+            addProductBtn.addEventListener('click', () => {
+                this.showAddProductForm();
+            });
+            
+            profileActions.appendChild(addProductBtn);
+
+
+
+        }
+
         const logoutButton = this.createButton(
             'button',
             'btn btn-danger',
@@ -310,6 +332,300 @@ export class ProfilePage extends BasePage {
         profileContainer.appendChild(profileCard);
 
         return profileContainer;
+    }
+
+    ProfileStatistica()
+    {
+        const container = document.createElement("div");
+        container.className = 'profile-container';
+
+        const profileCard = document.createElement('div');
+        profileCard.className = 'profile-card';
+
+        const profileHeader = document.createElement('div');
+        profileHeader.className = 'profile-header';
+
+        const profileAvatar = document.createElement('div');
+        profileAvatar.className = 'profile-avatar';
+
+    }
+
+
+    showAddProductForm() {
+        this.isAddingProduct = true;
+        this.selectedImage = null;
+        
+        const mainContent = this.clearMainContent();
+        if (!mainContent) return;
+
+        const profileContainer = document.createElement('div');
+        profileContainer.className = 'profile-container';
+
+        const formDiv = document.createElement('div');
+        formDiv.className = 'product-add-form';
+
+        const title = document.createElement('h3');
+        title.textContent = 'Добавление нового товара';
+        title.style.cssText = `
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--color-text-main);
+        `;
+        formDiv.appendChild(title);
+
+        const form = document.createElement('form');
+        form.id = 'add-product-form';
+        form.className = 'edit-product-form';
+
+        // Название
+        const titleGroup = this.createFormGroup('Название товара:', 'text', 'add-title', 'title', 'Введите название');
+        form.appendChild(titleGroup);
+
+        // Описание
+        const descGroup = this.createFormGroup('Описание:', 'textarea', 'add-description', 'description', 'Введите описание');
+        form.appendChild(descGroup);
+
+        // Жанр
+        const genreGroup = this.createFormGroup('Жанр:', 'text', 'add-genre', 'genre', 'Введите жанр');
+        form.appendChild(genreGroup);
+
+        // Платформа
+        const platformGroup = this.createFormGroup('Платформа:', 'text', 'add-platform', 'platform', 'Введите платформу');
+        form.appendChild(platformGroup);
+
+        // Цена
+        const priceGroup = this.createFormGroup('Цена (₽):', 'number', 'add-price', 'price', 'Введите цену');
+        form.appendChild(priceGroup);
+
+        // Скидка
+        const discountGroup = this.createFormGroup('Скидка (%):', 'number', 'add-discount', 'discount', '0');
+        form.appendChild(discountGroup);
+
+        // Дата выхода
+        const releaseGroup = this.createFormGroup('Дата выхода:', 'text', 'add-releaseDate', 'releaseDate', 'Введите год');
+        form.appendChild(releaseGroup);
+
+        // Разработчик
+        const developerGroup = this.createFormGroup('Разработчик:', 'text', 'add-developer', 'developer', 'Введите разработчика');
+        form.appendChild(developerGroup);
+
+        // Загрузка изображения с компьютера
+        const imageUploadGroup = document.createElement('div');
+        imageUploadGroup.className = 'form-group';
+        
+        const imageLabel = document.createElement('label');
+        imageLabel.textContent = 'Изображение товара:';
+        imageUploadGroup.appendChild(imageLabel);
+        
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.id = 'add-image-file';
+        fileInput.accept = 'image/*';
+        fileInput.style.cssText = `
+            display: block;
+            margin-top: 8px;
+            padding: 8px;
+            border: 2px dashed var(--color-card-border);
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        `;
+        imageUploadGroup.appendChild(fileInput);
+        
+        // Контейнер для превью
+        const previewContainer = document.createElement('div');
+        previewContainer.id = 'image-preview-container';
+        previewContainer.style.cssText = `
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        `;
+        
+        const previewImg = document.createElement('img');
+        previewImg.id = 'add-preview-img';
+        previewImg.style.cssText = `
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid var(--color-card-border);
+            padding: 5px;
+            object-fit: cover;
+        `;
+        previewImg.alt = 'Превью товара';
+        previewContainer.appendChild(previewImg);
+        
+        const removeImageBtn = document.createElement('button');
+        removeImageBtn.type = 'button';
+        removeImageBtn.textContent = '✕ Удалить изображение';
+        removeImageBtn.style.cssText = `
+            display: block;
+            margin: 8px auto 0;
+            padding: 4px 12px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        removeImageBtn.addEventListener('click', () => {
+            this.selectedImage = null;
+            fileInput.value = '';
+            previewContainer.style.display = 'none';
+            previewImg.src = '';
+        });
+        previewContainer.appendChild(removeImageBtn);
+        
+        imageUploadGroup.appendChild(previewContainer);
+        form.appendChild(imageUploadGroup);
+
+        // Кнопки
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'form-buttons';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'btn btn-success';
+        submitBtn.textContent = '💾 Добавить товар';
+        submitBtn.style.cssText = `
+            background: linear-gradient(135deg, #00b894, #00a381);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        `;
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn btn-secondary';
+        cancelBtn.textContent = '❌ Отмена';
+        cancelBtn.style.cssText = `
+            background: #a0aec0;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        `;
+
+        buttonsDiv.style.cssText = `
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        `;
+        
+        buttonsDiv.appendChild(submitBtn);
+        buttonsDiv.appendChild(cancelBtn);
+        form.appendChild(buttonsDiv);
+
+        formDiv.appendChild(form);
+        profileContainer.appendChild(formDiv);
+        mainContent.appendChild(profileContainer);
+
+        // Обработчик загрузки файла
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.selectedImage = event.target.result;
+                    previewImg.src = this.selectedImage;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Обработчик отправки формы
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveNewProduct();
+        });
+
+        // Обработчик отмены
+        cancelBtn.addEventListener('click', () => {
+            this.isAddingProduct = false;
+            this.render();
+        });
+    }
+
+    saveNewProduct() {
+        // Собираем данные из формы
+        const newProduct = {
+            title: document.getElementById('add-title').value,
+            description: document.getElementById('add-description').value,
+            genre: document.getElementById('add-genre').value,
+            platform: document.getElementById('add-platform').value,
+            price: Number(document.getElementById('add-price').value),
+            discount: Number(document.getElementById('add-discount').value) || 0,
+            releaseDate: document.getElementById('add-releaseDate').value,
+            developer: document.getElementById('add-developer').value,
+            img: this.selectedImage || '../img/placeholder.jpg',
+            quatityOrders: 0,
+        };
+
+        // Проверка обязательных полей
+        if (!newProduct.title || !newProduct.description || !newProduct.price) {
+            this.showNotification('❌ Заполните все обязательные поля!', 'error');
+            return;
+        }
+
+        // Добавляем товар
+        const result = addProduct(newProduct);
+        
+        if (result) {
+            this.showNotification('✅ Товар успешно добавлен!', 'success');
+            this.isAddingProduct = false;
+            this.selectedImage = null;
+            
+            // Возвращаемся в профиль через секунду
+            setTimeout(() => {
+                this.render();
+            }, 1500);
+        } else {
+            this.showNotification('❌ Ошибка при добавлении товара', 'error');
+        }
+    }
+
+    showNotification(message, type = 'success') {
+        const oldNotification = document.querySelector('.profile-notification');
+        if (oldNotification) {
+            oldNotification.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.className = `profile-notification ${type}`;
+        notification.textContent = message;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideInRight 0.5s ease;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.5s ease forwards';
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
     }
 
     createInfoRow(labelText, valueText) {

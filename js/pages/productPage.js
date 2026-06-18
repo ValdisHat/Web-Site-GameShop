@@ -1,5 +1,6 @@
+// productPage.js
 import { BasePage } from './basePage.js';
-import {products} from '../data/products.js';
+import { products, updateProduct, getProducts, deleteProduct } from '../data/products.js';
 import { CartUtils } from '../components/cartUtils.js';
 import { adminPanel } from "../components/adminPanel.js";
 
@@ -31,9 +32,10 @@ export class ProductPage extends BasePage {
     renderProduct() {
         this.container.innerHTML="";
         const productId = this.getProductIdFromUrl();
-        const product = products.find((item) => item.id === productId);
-
         
+        // Получаем актуальные данные из localStorage
+        const currentProducts = getProducts();
+        const product = currentProducts.find((item) => item.id === productId);
 
         if (!this.container) {
             console.error('Контейнер product-container не найден');
@@ -45,7 +47,6 @@ export class ProductPage extends BasePage {
             return;
         }
 
-
         const section = document.createElement("section");
         section.className = "product-page";
 
@@ -53,8 +54,6 @@ export class ProductPage extends BasePage {
 
         const content = document.createElement("div");
         content.className = "pp-content";
-
-
 
         const h1 = document.createElement("h1");
         h1.className = "pp-title";
@@ -75,21 +74,55 @@ export class ProductPage extends BasePage {
         content.appendChild(p);
         content.appendChild(ul);
         content.appendChild(button);
-        if(this.isAdmin)
-        {
+        
+        if(this.isAdmin) {
             const admin_actions = document.createElement("div");
             admin_actions.className = "admin-actions";
 
+            // Кнопка редактирования
             const edit_product_btn = document.createElement("button");
             edit_product_btn.id = "edit-product-btn";
             edit_product_btn.className = "admin-edit-btn";
-            edit_product_btn.textContent = "✏️ Редактировать товар"
-
+            edit_product_btn.textContent = "✏️ Редактировать товар";
             admin_actions.appendChild(edit_product_btn);
+
+            // Кнопка удаления
+            const delete_product_btn = document.createElement("button");
+            delete_product_btn.id = "delete-product-btn";
+            delete_product_btn.className = "admin-delete-btn";
+            delete_product_btn.textContent = "🗑️ Удалить товар";
+            delete_product_btn.style.marginTop = "10px";
+            delete_product_btn.style.width = "100%";
+            delete_product_btn.style.padding = "12px 20px";
+            delete_product_btn.style.border = "none";
+            delete_product_btn.style.borderRadius = "8px";
+            delete_product_btn.style.background = "#f76060";
+            delete_product_btn.style.color = "white";
+            delete_product_btn.style.fontSize = "16px";
+            delete_product_btn.style.fontWeight = "600";
+            delete_product_btn.style.cursor = "pointer";
+            delete_product_btn.style.transition = "all 0.3s ease";
+            
+            delete_product_btn.addEventListener('mouseenter', () => {
+                delete_product_btn.style.background = "#f76060";
+                delete_product_btn.style.transform = "translateY(-2px)";
+                delete_product_btn.style.boxShadow = "0 4px 15px rgba(255, 68, 68, 0.4)";
+            });
+            
+            delete_product_btn.addEventListener('mouseleave', () => {
+                delete_product_btn.style.background = "#ff4444";
+                delete_product_btn.style.transform = "translateY(0)";
+                delete_product_btn.style.boxShadow = "none";
+            });
+            
+            delete_product_btn.addEventListener('click', () => {
+                this.deleteProduct(product.id);
+            });
+            
+            admin_actions.appendChild(delete_product_btn);
 
             content.appendChild(admin_actions);
         }
-
 
         section.appendChild(wrapper);
         section.appendChild(content);
@@ -99,13 +132,28 @@ export class ProductPage extends BasePage {
         if (this.isAdmin && this.isEditing) {
             this.renderEditForm(product);
         }
-    
     }
 
+    deleteProduct(productId) {
+        const product = getProducts().find(p => p.id === productId);
+        
+        if (confirm(`Вы уверены, что хотите удалить товар "${product?.title || 'Товар'}"?`)) {
+            // Удаляем товар
+            deleteProduct(productId);
+            
+            // Показываем уведомление
+            this.showNotification('✅ Товар успешно удален!', 'success');
+            
+            // Перенаправляем на главную через 1.5 секунды
+            setTimeout(() => {
+                window.location.href = 'Home.html';
+            }, 1500);
+        }
+    }
 
     getDiscountedPrice(price, discount) {
         if (discount && discount > 0) {
-            return price - (price * discount / 100);
+            return Math.round(price - (price * discount / 100));
         }
         return price;
     }
@@ -164,32 +212,39 @@ export class ProductPage extends BasePage {
 
     saveProductChanges() {
         const productId = this.getProductIdFromUrl();
-        const productIndex = products.findIndex((item) => item.id === productId);
         
-        if (productIndex !== -1) {
-            const discountValue = Number(document.getElementById('edit-discount').value) || 0;
+        // Собираем данные из формы
+        const updatedProduct = {
+            title: document.getElementById('edit-title').value,
+            description: document.getElementById('edit-description').value,
+            genre: document.getElementById('edit-genre').value,
+            platform: document.getElementById('edit-platform').value,
+            price: Number(document.getElementById('edit-price').value),
+            discount: Number(document.getElementById('edit-discount').value) || 0,
+            releaseDate: document.getElementById('edit-releaseDate').value,
+            developer: document.getElementById('edit-developer').value,
+            img: document.getElementById('edit-img').value
+        };
+        
+        // Обновляем товар через функцию updateProduct
+        const result = updateProduct(productId, updatedProduct);
+        
+        if (result) {
+            // Показываем уведомление об успехе
+            this.showNotification('✅ Товар успешно обновлен и сохранен в localStorage!', 'success');
             
-            // Сохраняем изменения
-            products[productIndex] = {
-                ...products[productIndex],
-                title: document.getElementById('edit-title').value,
-                description: document.getElementById('edit-description').value,
-                genre: document.getElementById('edit-genre').value,
-                platform: document.getElementById('edit-platform').value,
-                price: Number(document.getElementById('edit-price').value),
-                discount: discountValue,
-                releaseDate: document.getElementById('edit-releaseDate').value,
-                developer: document.getElementById('edit-developer').value,
-                img: document.getElementById('edit-img').value
-            };
-            
-            // Показываем уведомление
-            this.showNotification('✅ Товар успешно обновлен!', 'success');
-            
-            // Выходим из режима редактирования и обновляем отображение
+            // Выходим из режима редактирования
             this.isEditing = false;
+            
+            // Обновляем отображение
             this.renderProduct();
-            this.addCartButtonListener(); // Обновляем слушатель для кнопки
+            this.addCartButtonListener();
+            
+            // Логируем для отладки
+            console.log('📦 Товар сохранен в localStorage:', result);
+            console.log('📦 Все товары в localStorage:', getProducts());
+        } else {
+            this.showNotification('❌ Ошибка при обновлении товара', 'error');
         }
     }
 
@@ -201,16 +256,33 @@ export class ProductPage extends BasePage {
 
         const notification = document.createElement('div');
         notification.className = `product-notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <span>${message}</span>
-            </div>
+        
+        const content = document.createElement('div');
+        content.className = 'notification-content';
+        content.textContent = message;
+        notification.appendChild(content);
+        
+        // Добавляем стили для уведомления
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideInRight 0.5s ease;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
         `;
         
         document.body.appendChild(notification);
         
         setTimeout(() => {
-            notification.classList.add('fade-out');
+            notification.style.cssText += `
+                animation: slideOutRight 0.5s ease forwards;
+            `;
             setTimeout(() => notification.remove(), 500);
         }, 3000);
     }
@@ -220,8 +292,7 @@ export class ProductPage extends BasePage {
         return Number(params.get('id'));
     }
 
-    addCartButtonListener() 
-    {
+    addCartButtonListener() {
         const button = document.querySelector('.add-to-cart-button');
 
         if (!button) {
@@ -233,12 +304,16 @@ export class ProductPage extends BasePage {
 
             CartUtils.addToCart(productId);
 
-            button.textContent = 'Добавлено';
+            button.textContent = '✅ Добавлено';
             button.style.backgroundColor = "rgb(115, 179, 73)"
+            
+            setTimeout(() => {
+                button.textContent = 'Добавить в корзину';
+                button.style.backgroundColor = "";
+            }, 2000);
         });
 
-        if (this.isAdmin) 
-        {
+        if (this.isAdmin) {
             const editBtn = document.getElementById('edit-product-btn');
             if (editBtn) {
                 editBtn.addEventListener('click', () => {
@@ -249,8 +324,7 @@ export class ProductPage extends BasePage {
         }
     }
 
-    CreateWrapper(classWrapper, classImg, product)
-    {
+    CreateWrapper(classWrapper, classImg, product) {
         const wrapper = document.createElement("div")
         wrapper.className = classWrapper;
 
@@ -263,11 +337,9 @@ export class ProductPage extends BasePage {
         return wrapper;
     }
 
-    createUl(className, product)
-    {
+    createUl(className, product) {
         const hasDiscount = product.discount && product.discount > 0;
         const discountedPrice = this.getDiscountedPrice(product.price, product.discount);
-
 
         const ul = document.createElement("ul");
         ul.className = className
@@ -279,27 +351,39 @@ export class ProductPage extends BasePage {
         li_platform.textContent = `💻 Платформа: ${product.platform}`;
 
         const li_price = document.createElement("li");
-        if (hasDiscount)
-        {
+        li_price.className = "price-row";
+        
+        // Добавляем "Цена:" перед ценой
+        const priceLabel = document.createElement("span");
+        priceLabel.className = "price-label";
+        priceLabel.textContent = "Цена:";
+        li_price.appendChild(priceLabel);
+        
+        if (hasDiscount) {
+            // Старая цена
             const span_old_price = document.createElement("span");
-            span_old_price.id = "old-price";
-            span_old_price.textContent = `💰 Цена: ${product.price}`;
+            span_old_price.className = "old-price";
+            span_old_price.textContent = `${product.price}`;
 
+            // Новая цена
             const span_new_price = document.createElement("span");
-            span_new_price.id = "new-price"
-            span_new_price.textContent = ` ${discountedPrice} ₽`;
+            span_new_price.className = "new-price";
+            span_new_price.textContent = `${discountedPrice} ₽`;
 
+            // Бейдж скидки
             const span_discount = document.createElement("span");
-            span_discount.id = "discount";
+            span_discount.className = "discount-badge-small";
             span_discount.textContent = `${product.discount}%`;
 
             li_price.appendChild(span_old_price);
             li_price.appendChild(span_new_price);
             li_price.appendChild(span_discount);
-        }
-        else
-        {
-            li_price.textContent = `💰 Цена: ${product.price} ₽`
+        } else {
+            // Обычная цена
+            const priceSpan = document.createElement("span");
+            priceSpan.className = "price";
+            priceSpan.textContent = `${product.price} ₽`;
+            li_price.appendChild(priceSpan);
         }
         
         ul.appendChild(li_genre);
@@ -309,9 +393,7 @@ export class ProductPage extends BasePage {
         return ul;
     }
 
-
-    productUndefind()
-    {
+    productUndefind() {
         const section = document.createElement("section");
         section.className = "product-page";
 

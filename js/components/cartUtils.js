@@ -1,70 +1,78 @@
+// components/CartUtils.js
 export class CartUtils {
-    static storageKey = 'gameshop_cart';
+
 
     static getCart() {
-        const savedCart = localStorage.getItem(this.storageKey);
-        return savedCart ? JSON.parse(savedCart) : [];
+        const user = sessionStorage.getItem('currentUser');
+        if (!user) {
+            return [];
+        }
+        const currentUser = JSON.parse(user);
+
+        return JSON.parse(localStorage.getItem(`gameStoreCart_${currentUser.id}`) || '[]');
     }
 
     static saveCart(cart) {
-        localStorage.setItem(this.storageKey, JSON.stringify(cart));
-    }
+        const savedUser = sessionStorage.getItem('currentUser');
 
-    static addToCart(productId) {
-        const id = Number(productId);
-
-        if (!Number.isFinite(id)) {
-            console.error('Некорректный id товара:', productId);
+        if (!savedUser) {
+            console.log('Пользователь не найден');
             return;
         }
 
-        const cart = this.getCart();
-        const existingItem = cart.find((item) => Number(item.id) === id);
+        const currentUser = JSON.parse(savedUser);
 
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                id,
-                quantity: 1
-            });
-        }
-
-        this.saveCart(cart);
+        localStorage.setItem(`gameStoreCart_${currentUser.id}`, JSON.stringify(cart));
     }
 
-    static removeFromCart(productId) {
-        const id = Number(productId);
-
-        const cart = this.getCart().filter((item) => {
-            return Number(item.id) !== id;
-        });
-
+    static addToCart(productId) {
+        const cart = this.getCart();
+        const existing = cart.find(item => item.id === productId);
+        
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({ id: productId, quantity: 1 });
+        }
+        
         this.saveCart(cart);
-
         return cart;
     }
 
-    static updateQuantity(productId, delta) {
-        const id = Number(productId);
+    static updateQuantity(productId, quantity) {
         const cart = this.getCart();
-
-        const item = cart.find((item) => Number(item.id) === id);
-
-        if (!item) {
-            return cart;
+        const index = cart.findIndex(item => item.id === productId);
+        
+        if (index !== -1) {
+            if (quantity <= 0) {
+                cart.splice(index, 1);
+            } else {
+                cart[index].quantity = quantity;
+            }
+            this.saveCart(cart);
         }
+        return cart;
+    }
 
-        item.quantity += delta;
-
-        const updatedCart = cart.filter((item) => item.quantity > 0);
-
-        this.saveCart(updatedCart);
-
-        return updatedCart;
+    static removeFromCart(productId) {
+        const cart = this.getCart();
+        const index = cart.findIndex(item => item.id === productId);
+        
+        if (index !== -1) {
+            cart.splice(index, 1);
+            this.saveCart(cart);
+        }
+        return cart;
     }
 
     static clearCart() {
-        this.saveCart([]);
+        const user = sessionStorage.getItem('currentUser');
+        if (!user) {
+            return [];
+        }
+        const currentUser = JSON.parse(user);
+
+        localStorage.removeItem(`gameStoreCart_${currentUser.id}`);
+        return [];
     }
 }

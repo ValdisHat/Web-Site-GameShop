@@ -39,7 +39,7 @@ export class adminPanel {
 
         const edit_price = this.createInputGroup("number","edit-price","price",product.price,"Цена (руб.):",null, null, "1");
 
-        const edit_discount = this.createInputGroup("number","edit-discount","discount",product.discount,"Скидка (%):","0", "99", "1");
+        const edit_discount = this.createInputGroup("number","edit-discount","discount",product.discount,"Скидка (%):","0", "100", "1");
 
         price_discount.appendChild(edit_price);
         price_discount.appendChild(edit_discount);
