@@ -200,6 +200,8 @@ export class HomePage extends BasePage {
 
                 CartUtils.addToCart(productId);
 
+                
+                
                 button.textContent = '✅ Добавлено';
                 button.style.backgroundColor = 'rgb(115, 179, 73)';
                 

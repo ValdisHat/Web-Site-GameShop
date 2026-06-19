@@ -2,6 +2,7 @@
 import { BasePage } from './basePage.js';
 import { accounts, addAccount, validateLogin } from '../data/accounts.js';
 import { addProduct } from '../data/products.js';
+import { CartUtils } from '../components/cartUtils.js';
 
 export class ProfilePage extends BasePage {
     constructor() {
@@ -14,6 +15,7 @@ export class ProfilePage extends BasePage {
 
     init() {
         console.log('ProfilePage initialized');
+        this.saveAccountsData();
         super.init();
         this.render();
     }
@@ -242,12 +244,12 @@ export class ProfilePage extends BasePage {
         profileAvatar.className = 'profile-avatar';
 
         const avatarImg = document.createElement('img');
-        avatarImg.src = '../img/default-avatar.png';
+        avatarImg.src = this.currentUser.img;;
         avatarImg.alt = 'Аватар';
 
         avatarImg.onerror = () => {
             avatarImg.onerror = null;
-            avatarImg.src = 'https://via.placeholder.com/100';
+            avatarImg.src = this.currentUser.img;
         };
 
         profileAvatar.appendChild(avatarImg);
@@ -286,7 +288,7 @@ export class ProfilePage extends BasePage {
 
         const dateRow = this.createInfoRow(
             'Дата регистрации:',
-            new Date().toLocaleDateString('ru-RU')
+            new Date(this.currentUser.createdAt).toLocaleDateString('ru-RU')
         );
 
         profileDetails.appendChild(title);
@@ -298,6 +300,10 @@ export class ProfilePage extends BasePage {
         profileActions.className = 'profile-actions';
 
         // Кнопка "Добавить товар" только для администратора
+        const gridStatistic = document.createElement("div");
+        gridStatistic.className = "grid-statistic";
+
+
         if (this.currentUser.status === 'admin') {
             const addProductBtn = this.createButton(
                 'button',
@@ -312,7 +318,60 @@ export class ProfilePage extends BasePage {
             
             profileActions.appendChild(addProductBtn);
 
+            
 
+            const popularProduct = CartUtils.popularProduct();
+
+            const popularProductBlock = this.createStatisticBlock(
+                'Самая популярная игра',
+                popularProduct.title,
+                `Была куплена: ${popularProduct.quantityOrders} раз.`,
+                popularProduct.img,
+                popularProduct.title
+            );
+
+            const userOrders = this.getUserMaxOrders();
+            
+
+            const userMaxOrders = this.createStatisticBlock(
+                'Пользователь с наибольшим кол-вом заказов',
+                userOrders.user.username,
+                `Количество заказов: ${userOrders.total}`,
+                userOrders.user.img,
+                'Аватар пользователя'
+            );
+
+            const userSpend = this.getUserMaxSpendMoney();
+
+            const maxOrdersBlock2 = this.createStatisticBlock(
+                'Лидер по трате денег',
+                userSpend.user.username,
+                `Количество потраченных денег: ${userSpend.total}`,
+                userSpend.user.img,
+                'Аватар пользователя'
+            );
+
+            const maxOrdersBlock3 = this.createStatisticBlock(
+                'Кол-во заказов сегодня',
+                'Кол-во заказов сегодня',
+                this.getQuantityOrdersToday(),
+                '../img/Ведьмак.jpeg',
+                'Аватар пользователя'
+            );
+
+            const maxOrdersBlock4 = this.createStatisticBlock(
+                'Кол-во зареганных пользователей сегодня',
+                'Кол-во зареганных пользователей сегодня',
+                this.getRegisteredUsersToday(),
+                '../img/Ведьмак.jpeg',
+                'Аватар пользователя'
+            );
+            gridStatistic.appendChild(popularProductBlock);
+            gridStatistic.appendChild(userMaxOrders);
+            gridStatistic.appendChild(maxOrdersBlock2);
+            gridStatistic.appendChild(maxOrdersBlock3);
+            gridStatistic.appendChild(maxOrdersBlock4);
+           
 
         }
 
@@ -328,17 +387,15 @@ export class ProfilePage extends BasePage {
         profileCard.appendChild(profileHeader);
         profileCard.appendChild(profileDetails);
         profileCard.appendChild(profileActions);
+        
 
         profileContainer.appendChild(profileCard);
-
+        profileContainer.appendChild(gridStatistic);
+        
         return profileContainer;
     }
 
-    ProfileStatistica()
-    {
-        const container = document.createElement("div");
-        container.className = 'profile-container';
-
+    createStatisticBlock(titleText, mainText, descriptionText, imageSrc, imageAlt) {
         const profileCard = document.createElement('div');
         profileCard.className = 'profile-card';
 
@@ -348,8 +405,122 @@ export class ProfilePage extends BasePage {
         const profileAvatar = document.createElement('div');
         profileAvatar.className = 'profile-avatar';
 
+        const image = document.createElement('img');
+        image.src = imageSrc;
+        image.alt = imageAlt;
+
+
+
+        profileAvatar.appendChild(image);
+
+        const profileStatus = document.createElement('div');
+        profileStatus.className = 'profile-status user';
+        profileStatus.textContent = titleText;
+
+        profileHeader.appendChild(profileAvatar);
+        profileHeader.appendChild(profileStatus);
+
+        const profileDetails = document.createElement('div');
+        profileDetails.className = 'profile-details';
+
+        const title = document.createElement('h2');
+        title.textContent = mainText;
+
+        const descriptionRow = this.createInfoRow(
+            'Информация:',
+            descriptionText
+        );
+
+        profileDetails.appendChild(title);
+        profileDetails.appendChild(descriptionRow);
+
+        profileCard.appendChild(profileHeader);
+        profileCard.appendChild(profileDetails);
+
+        return profileCard;
     }
 
+    getUserMaxOrders()
+    {
+        const users = CartUtils.get("gameStoreAccounts");
+        let maxOrders  = null;
+        let maxOrdersUser = null;
+
+        users.forEach(user => {
+            const orders = CartUtils.get(`gameStoreOrders_${user.id}`);
+            if (maxOrders === null || maxOrders < orders.length)
+            {
+                maxOrders = orders.length;
+                maxOrdersUser = user;
+            }
+        });
+
+        return {
+            user: maxOrdersUser,
+            total: maxOrders
+        };
+    }
+
+    getUserMaxSpendMoney()
+    {
+        const users = CartUtils.get("gameStoreAccounts");
+        let maxMoney  = null;
+        let maxMoneyUser = null;
+
+        users.forEach(user => {
+            const orders = CartUtils.get(`gameStoreOrders_${user.id}`);
+            const totalSpent = orders.reduce((sum, order) => {
+            return sum + order.total;
+            }, 0);
+            if (maxMoney === null || maxMoney < totalSpent)
+            {
+                maxMoney = totalSpent;
+                maxMoneyUser = user;
+            }
+        });
+        return {
+            user: maxMoneyUser,
+            total: maxMoney
+        };
+    }
+
+    getQuantityOrdersToday() {
+        const users = CartUtils.get("gameStoreAccounts") || [];
+
+        let quantity = 0;
+
+        const today = new Date().toLocaleDateString('ru-RU');
+
+        users.forEach((user) => {
+            const orders = CartUtils.get(`gameStoreOrders_${user.id}`) || [];
+
+            orders.forEach((order) => {
+                if (order.date.startsWith(today)) {
+                    quantity += 1;
+                }
+            });
+        });
+
+        return quantity;
+    }
+
+    getRegisteredUsersToday() {
+        const users = CartUtils.get("gameStoreAccounts") || [];
+
+        const today = new Date();
+
+        const usersToday = users.filter((user) => {
+            if (!user.createdAt) return false;
+
+            const registrationDate = new Date(user.createdAt);
+
+            return registrationDate.getDate() === today.getDate() &&
+                registrationDate.getMonth() === today.getMonth() &&
+                registrationDate.getFullYear() === today.getFullYear();
+        });
+
+        return usersToday.length;
+    }
 
     showAddProductForm() {
         this.isAddingProduct = true;
@@ -784,5 +955,11 @@ export class ProfilePage extends BasePage {
         this.showLogin = true;
         sessionStorage.removeItem('currentUser');
         this.showAuthForm();
+    }
+
+    saveAccountsData()
+    {
+        const data = localStorage.getItem("gameStoreAccounts");
+        if (!data){CartUtils.save("gameStoreAccounts",accounts)}  
     }
 }

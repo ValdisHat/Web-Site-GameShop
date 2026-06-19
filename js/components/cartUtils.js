@@ -1,7 +1,5 @@
 // components/CartUtils.js
 export class CartUtils {
-
-
     static getCart() {
         const user = sessionStorage.getItem('currentUser');
         if (!user) {
@@ -38,6 +36,49 @@ export class CartUtils {
         this.saveCart(cart);
         return cart;
     }
+
+
+
+    static get(nameLocal)
+    {
+        return JSON.parse(localStorage.getItem(nameLocal) || '[]');
+    }
+
+    static save(nameLocal, items)
+    {
+        localStorage.setItem(nameLocal, JSON.stringify(items));
+    }
+
+
+    static updateProductsQuantity(productId, quantity = 0)
+    {
+        const product = this.get(`gameStoreProducts`);
+        const existing = product.find(item => item.id === productId);
+
+        existing.quantityOrders += quantity;
+
+        this.save(`gameStoreProducts`,product);
+        return product;
+    }
+
+    static popularProduct()
+    {
+        const product = this.get(`gameStoreProducts`);
+        let maxQuantity = null;
+        let maxId = null;
+        product.forEach(item => {
+            if (maxQuantity === null || item.quantityOrders > maxQuantity)
+            {
+                maxQuantity = item.quantityOrders;
+                maxId = item.id;
+            } 
+        });
+        return product.find(item => item.id === maxId);
+    }
+
+
+
+
 
     static updateQuantity(productId, quantity) {
         const cart = this.getCart();

@@ -249,7 +249,10 @@ export class CartPage extends BasePage {
             id: Date.now(),
             date: new Date().toLocaleString(),
             items: this.cart.map(item => {
+                CartUtils.updateProductsQuantity(item.id,item.quantity)
+
                 const product = this.products.find(p => p.id === item.id);
+
                 const hasDiscount = product?.discount && product.discount > 0;
                 const price = hasDiscount 
                     ? this.getDiscountedPrice(product.price, product.discount) 
